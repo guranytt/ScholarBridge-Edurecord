@@ -13,6 +13,7 @@ export default function Login() {
   const [password, setPassword] = useState('password123'); // Demo default
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [demoMenuOpen, setDemoMenuOpen] = useState(false);
   
   const { user, setUser } = useStore();
   const navigate = useNavigate();
@@ -42,6 +43,24 @@ export default function Login() {
     }
   };
 
+  const loginAsRole = async (roleEmail: string) => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const data = await apiCall('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email: roleEmail, password: 'password123' })
+      });
+      setUser(data.user, data.token);
+      navigate(`/${data.user.role}`);
+    } catch(err: any) {
+      setError(err.message || 'Failed to login');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fillDemoCredentials = (roleEmail: string) => {
     setEmail(roleEmail);
     setPassword('password123');
@@ -61,23 +80,139 @@ export default function Login() {
             <BookOpen className="h-6 w-6" />
           </div>
           <div>
-            <span className="font-extrabold text-slate-900 tracking-tight text-lg">Edurecord</span>
+            <span className="font-extrabold text-slate-900 tracking-tight text-lg animate-pulse">Edurecord</span>
             <span className="text-[10px] uppercase font-bold text-indigo-600 ml-1 bg-indigo-50 px-1.5 py-0.5 rounded-md tracking-wider">Proctored Core</span>
           </div>
         </div>
-        <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-500">
-          <a href="#features" className="hover:text-indigo-600 transition-colors">Platform Suite</a>
-          <a href="#proctor" className="hover:text-indigo-600 transition-colors">Academic Integrity</a>
-          <a href="#stats" className="hover:text-indigo-600 transition-colors">Performance Logs</a>
-        </div>
-        <div>
+
+        {/* Dynamic Interactive Demo Dropdown Hub */}
+        <div className="relative">
           <button 
             type="button"
-            onClick={() => fillDemoCredentials('admin@school.com')}
-            className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3.5 py-2 rounded-xl transition-all shadow-sm border border-indigo-100 cursor-pointer"
+            id="demo-trigger-btn"
+            onClick={() => setDemoMenuOpen(!demoMenuOpen)}
+            className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl transition-all shadow-md shadow-indigo-150 inline-flex items-center gap-1.5 cursor-pointer"
           >
+            <Sparkles className="w-3.5 h-3.5 text-indigo-200" />
             Launch Instant Demo
+            <span className={`text-[9px] transition-transform duration-200 ${demoMenuOpen ? 'rotate-180' : ''}`}>▼</span>
           </button>
+
+          {demoMenuOpen && (
+            <>
+              {/* Overlay clickable background to handle click-away behavior */}
+              <div 
+                className="fixed inset-0 z-40 bg-slate-900/10 backdrop-blur-[1px]" 
+                id="demo-overlay"
+                onClick={() => setDemoMenuOpen(false)} 
+              />
+              
+              <div 
+                className="absolute right-0 mt-2.5 w-80 bg-white rounded-2xl border border-slate-200 shadow-2xl z-50 p-4 space-y-4 animate-fadeIn"
+                id="demo-dropdown-panel"
+              >
+                <div>
+                  <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-600 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-indigo-500" /> Quick Role Logins
+                  </h4>
+                  <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Bypass login and enter simulated personas immediately:</p>
+                </div>
+                
+                <div className="space-y-1.5">
+                  <button
+                    onClick={() => {
+                      loginAsRole('admin@school.com');
+                      setDemoMenuOpen(false);
+                    }}
+                    id="login-btn-admin"
+                    className="w-full text-left px-3 py-2 text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-indigo-50/50 rounded-xl transition-all flex items-center justify-between border border-transparent hover:border-indigo-150/35 cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 shadow-sm" />
+                      School Administrator
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-bold bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded">Gov Hub</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      loginAsRole('teacher@school.com');
+                      setDemoMenuOpen(false);
+                    }}
+                    id="login-btn-teacher"
+                    className="w-full text-left px-3 py-2 text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-indigo-50/50 rounded-xl transition-all flex items-center justify-between border border-transparent hover:border-indigo-150/35 cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" />
+                      Faculty Educator
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-bold bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded">Syllabi</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      loginAsRole('adm001@student.com');
+                      setDemoMenuOpen(false);
+                    }}
+                    id="login-btn-student"
+                    className="w-full text-left px-3 py-2 text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-indigo-50/50 rounded-xl transition-all flex items-center justify-between border border-transparent hover:border-indigo-150/35 cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm" />
+                      Enrolled Pupil Student
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-bold bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded">Exams</span>
+                  </button>
+                </div>
+
+                <div className="border-t border-slate-100 pt-3">
+                  <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Useful Platform Links</h4>
+                </div>
+
+                <div className="space-y-1.5">
+                  <a
+                    href="https://ai.studio/build"
+                    target="_blank"
+                    rel="noreferrer"
+                    id="link-ai-studio"
+                    className="flex items-center justify-between px-3 py-1.5 text-xs text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition font-semibold"
+                  >
+                    <span>Google AI Studio Build</span>
+                    <span className="text-[9px] text-slate-400">αi portal ↗</span>
+                  </a>
+
+                  <Link
+                    to="/signup"
+                    id="link-register"
+                    onClick={() => setDemoMenuOpen(false)}
+                    className="flex items-center justify-between px-3 py-1.5 text-xs text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition font-semibold"
+                  >
+                    <span>Register New Institution</span>
+                    <span className="text-[9px] text-slate-400">Onboarding ↗</span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      fillDemoCredentials('admin@school.com');
+                      setDemoMenuOpen(false);
+                      const emailInput = document.getElementById('email');
+                      if (emailInput) emailInput.focus();
+                    }}
+                    id="link-credentials-picker"
+                    className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition font-semibold text-left cursor-pointer"
+                  >
+                    <span>View Shared Demo Accounts</span>
+                    <span className="text-[9px] text-slate-400">Prefill text</span>
+                  </button>
+                </div>
+
+                <div className="text-[9px] bg-indigo-50/40 text-indigo-700/80 p-2.5 rounded-xl text-center border border-indigo-100/30 font-medium leading-relaxed">
+                  Experience secured active-tab exam listeners, comprehensive classroom study files downloads, and visual progress grids!
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </motion.header>
 
