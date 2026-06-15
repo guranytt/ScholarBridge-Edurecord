@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Institution {
+  id                String             @id @default(uuid())
+  name              String
+  subscription_plan String             @default("basic")
+  status            String             @default("active")
+  users             User[]
+  classes           Class[]
+  subjects          Subject[]
+  students          Student[]
+  assignments       TeacherAssignment[]
+
+}
+
+model User {
+  id             String       @id @default(uuid())
+  name           String
+  email          String       @unique
+  password_hash  String
+  role           String       @default("teacher") // super_admin, admin, teacher, student
+  institution_id String?
+  institution    Institution? @relation(fields: [institution_id], references: [id])
+  student        Student?
+
+}
+
+model Class {
+  id             String       @id @default(uuid())
+  name           String
+  level          String
+  institution_id String
+  institution    Institution  @relation(fields: [institution_id], references: [id])
+  students       Student[]
+  assignments    TeacherAssignment[]
+  tests          Test[]
+
+}
+
+model Subject {
+  id             String       @id @default(uuid())
+  name           String
+  code           String
+  institution_id String
+  institution    Institution  @relation(fields: [institution_id], references: [id])
+  assignments    TeacherAssignment[]
+  results        Result[]
+  tests          Test[]
+
+}
+
+model Student {
+  id               String       @id @default(uuid())
+  full_name        String
+  admission_number String       @unique
+  class_id         String
+  institution_id   String
+  profile_image_url String?
+  user_id          String?      @unique
+
+  user             User?        @relation(fields: [user_id], references: [id])
+  class            Class        @relation(fields: [class_id], references: [id])
+  institution      Institution  @relation(fields: [institution_id], references: [id])
+  results          Result[]
+  report_cards     ReportCard[]
+  attempts         Attempt[]
+
+}
+
+model TeacherAssignment {
+  id             String       @id @default(uuid())
+  teacher_id     String
+  subject_id     String
+  class_id       String
+  institution_id String
+
+  institution    Institution  @relation(fields: [institution_id], references: [id])
+  class          Class        @relation(fields: [class_id], references: [id])
+  subject        Subject      @relation(fields: [subject_id], references: [id])
+
+}
+
+model Result {
+  id             String   @id @default(uuid())
+  student_id     String
+  subject_id     String
+  test_score     Float
+  exam_score     Float
+  total_score    Float
+  grade          String
+  term           String
+  session        String
+  created_at     DateTime @default(now())
+
+  student        Student  @relation(fields: [student_id], references: [id])
+  subject        Subject  @relation(fields: [subject_id], references: [id])
+
+  @@unique([student_id, subject_id, term, session])
+}
+
+model ReportCard {
+  id              String   @id @default(uuid())
+  student_id      String
+  term            String
+  session         String
+  overall_average Float
+  class_position  Int?
+  ai_comment      String?
+
+  student         Student  @relation(fields: [student_id], references: [id])
+
+  @@unique([student_id, term, session])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  user_id   String
+  action    String
+  entity    String
+  timestamp DateTime @default(now())
+
+}
+
+model Test {
+  id               String       @id @default(uuid())
+  title            String
+  description      String?
+  duration_minutes Int          @default(30)
+  class_id         String
+  subject_id       String
+  is_published     Boolean      @default(false)
+  questions_json   String       // Storing as JSON string
+  created_at       DateTime     @default(now())
+
+  class            Class        @relation(fields: [class_id], references: [id])
+  subject          Subject      @relation(fields: [subject_id], references: [id])
+  attempts         Attempt[]
+}
+
+model Attempt {
+  id                   String       @id @default(uuid())
+  test_id              String
+  student_id           String
+  score                Float?       // null means ongoing
+  status               String       @default("ongoing") // ongoing, submitted, flagged_cheating
+  tab_focus_violations Int          @default(0)
+  answers_json         String?      // Answers submitted by student
+  started_at           DateTime     @default(now())
+  submitted_at         DateTime?
+
+  test                 Test         @relation(fields: [test_id], references: [id])
+  student              Student      @relation(fields: [student_id], references: [id])
+}
