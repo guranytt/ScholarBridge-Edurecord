@@ -90,8 +90,7 @@ export default function Login() {
             <BookOpen className="h-6 w-6" />
           </div>
           <div>
-            <span className="font-extrabold text-slate-900 tracking-tight text-lg animate-pulse">Edurecord</span>
-            <span className="text-[10px] uppercase font-bold text-indigo-600 ml-1 bg-indigo-50 px-1.5 py-0.5 rounded-md tracking-wider">Proctored Core</span>
+            <span className="font-black text-slate-900 tracking-tight text-lg">Edurecord <span className="text-indigo-600 font-extrabold">Pro</span></span>
           </div>
         </div>
 
