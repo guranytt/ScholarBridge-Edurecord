@@ -12,6 +12,8 @@ model Institution {
   name              String
   subscription_plan String             @default("basic")
   status            String             @default("active")
+  active_term       String             @default("Term 1")
+  active_session    String             @default("2025/2026")
   users             User[]
   classes           Class[]
   subjects          Subject[]
@@ -157,4 +159,14 @@ model Attempt {
 
   test                 Test         @relation(fields: [test_id], references: [id])
   student              Student      @relation(fields: [student_id], references: [id])
+}
+
+model StudyNote {
+  id             String   @id @default(uuid())
+  title          String
+  class_id       String
+  subject_id     String
+  file_name      String?
+  file_content   String
+  created_at     DateTime @default(now())
 }

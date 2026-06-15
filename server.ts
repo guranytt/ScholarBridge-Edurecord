@@ -5,6 +5,7 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import fs from 'fs';
 
 let prismaClient: PrismaClient | null = null;
 const prisma = new Proxy({} as PrismaClient, {
@@ -29,6 +30,50 @@ const prisma = new Proxy({} as PrismaClient, {
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret';
 
+const SETTINGS_FILE_PATH = path.join(process.cwd(), 'prisma', 'academic_settings.json');
+
+function getAcademicSettings() {
+  try {
+    if (fs.existsSync(SETTINGS_FILE_PATH)) {
+      return JSON.parse(fs.readFileSync(SETTINGS_FILE_PATH, 'utf-8'));
+    }
+  } catch (err) {
+    console.error("Failed to read settings file", err);
+  }
+  return {
+    currentTerm: "Term 1",
+    currentSession: "2025/2026",
+    allow_teachers_edit: true,
+    allow_students_view: true,
+    strict_proctoring: true,
+    allowed_roles: ["admin", "teacher", "student"]
+  };
+}
+
+function saveAcademicSettings(settings: any) {
+  try {
+    fs.writeFileSync(SETTINGS_FILE_PATH, JSON.stringify(settings, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    console.error("Failed to write settings file", err);
+    return false;
+  }
+}
+
+async function createAuditLog(userId: string, action: string, entity: string) {
+  try {
+    await prisma.auditLog.create({
+      data: {
+        user_id: userId,
+        action,
+        entity
+      }
+    });
+  } catch (err) {
+    console.error("Failed to write audit log:", err);
+  }
+}
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -47,6 +92,7 @@ async function startServer() {
       if (!pwdMatch) return res.status(401).json({ error: 'Invalid credentials' });
       
       const token = jwt.sign({ userId: user.id, role: user.role, institutionId: user.institution_id }, JWT_SECRET, { expiresIn: '1d' });
+      await createAuditLog(user.id, "User authenticated and logged in", `User: ${user.name} (${user.role})`);
       res.json({ token, user: { id: user.id, name: user.name, role: user.role, email: user.email } });
     } catch(e) {
       console.error(e);
@@ -96,6 +142,8 @@ async function startServer() {
       await prisma.subject.create({ data: { name: 'Mathematics', code: 'MTH101', institution_id: institution.id } });
       await prisma.subject.create({ data: { name: 'English Language', code: 'ENG101', institution_id: institution.id } });
       await prisma.subject.create({ data: { name: 'General Science', code: 'SCI101', institution_id: institution.id } });
+
+      await createAuditLog(user.id, "Registered institution and Super-Admin configured", `Institution: ${name}`);
 
       const token = jwt.sign({ userId: user.id, role: user.role, institutionId: user.institution_id }, JWT_SECRET, { expiresIn: '1d' });
       res.json({ token, user: { id: user.id, name: user.name, role: user.role, email: user.email } });
@@ -172,6 +220,7 @@ async function startServer() {
           role: true
         }
       });
+      await createAuditLog(req.user.userId, `CREATED_TEACHER: Configured access for ${name} (${email})`, 'User');
       res.json(teacher);
     } catch (e) {
       console.error(e);
@@ -185,6 +234,10 @@ async function startServer() {
       if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
       const { id } = req.params;
 
+      const deletedUser = await prisma.user.findFirst({
+        where: { id, institution_id: institutionId, role: 'teacher' }
+      });
+
       // Unassign teacher assignments first
       await prisma.teacherAssignment.deleteMany({
         where: { teacher_id: id, institution_id: institutionId }
@@ -194,6 +247,8 @@ async function startServer() {
       await prisma.user.delete({
         where: { id, institution_id: institutionId, role: 'teacher' }
       });
+
+      await createAuditLog(req.user.userId, `TERMINATED_TEACHER: Removed staff profile for ${deletedUser?.name || id}`, 'User');
 
       res.json({ success: true });
     } catch (e) {
@@ -220,6 +275,7 @@ async function startServer() {
           institution_id: institutionId
         }
       });
+      await createAuditLog(req.user.userId, `CREATED_CLASSROOM: Established class "${name}" (Level ${level})`, 'Class');
       res.json(newCls);
     } catch (e) {
       console.error(e);
@@ -233,10 +289,16 @@ async function startServer() {
       if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
       const { id } = req.params;
 
+      const targetClass = await prisma.class.findFirst({
+        where: { id, institution_id: institutionId }
+      });
+
       // Delete assignments or handle cascades
       await prisma.teacherAssignment.deleteMany({ where: { class_id: id, institution_id: institutionId } });
       await prisma.class.delete({ where: { id, institution_id: institutionId } });
       
+      await createAuditLog(req.user.userId, `DELETED_CLASSROOM: Disbanded class "${targetClass?.name || id}"`, 'Class');
+
       res.json({ success: true });
     } catch (e) {
       console.error(e);
@@ -875,6 +937,149 @@ async function startServer() {
       res.json(updated);
     } catch (e) {
       console.error(e);
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+
+  // --- Academic Settings Router ---
+  app.get('/api/academic/settings', requireAuth, async (req: any, res: any) => {
+    try {
+      const settings = getAcademicSettings();
+      res.json(settings);
+    } catch(err) {
+      console.error(err);
+      res.status(500).json({ error: 'Failed to fetch academic settings.' });
+    }
+  });
+
+  app.post('/api/academic/settings', requireAuth, async (req: any, res: any) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Only administrators can configure system settings.' });
+      }
+      
+      const payload = req.body;
+      const success = saveAcademicSettings(payload);
+      if (success) {
+        await createAuditLog(req.user.userId, `Configured term active state to ${payload.currentTerm} (${payload.currentSession}) & updated roles/permissions`, 'System Settings');
+        res.json(payload);
+      } else {
+        res.status(500).json({ error: 'Failed to write settings to database payload.' });
+      }
+    } catch(err) {
+      console.error(err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+
+  // --- Audit Logs Retrieval ---
+  app.get('/api/audit-logs', requireAuth, async (req: any, res: any) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Only admins have access to security audit trails.' });
+      }
+
+      const logs = await prisma.auditLog.findMany({
+        orderBy: { timestamp: 'desc' },
+        take: 100 // Safe limit
+      });
+
+      // Enrich with userName
+      const userIds = Array.from(new Set(logs.map(l => l.user_id)));
+      const users = await prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, name: true, email: true, role: true }
+      });
+
+      const enrichedLogs = logs.map(log => {
+        const u = users.find(u => u.id === log.user_id);
+        return {
+          ...log,
+          userName: u ? `${u.name} (${u.role})` : 'System Core/Anonymous'
+        };
+      });
+
+      res.json(enrichedLogs);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Failed to query student logs db' });
+    }
+  });
+
+  // --- Study Notes / Study Material Files Router ---
+  app.get('/api/notes', requireAuth, async (req: any, res: any) => {
+    try {
+      const notes = await prisma.studyNote.findMany({
+        orderBy: { created_at: 'desc' }
+      });
+
+      // Enrich notes with Class & Subject info
+      const classes = await prisma.class.findMany({ where: { institution_id: req.user.institutionId } });
+      const subjects = await prisma.subject.findMany({ where: { institution_id: req.user.institutionId } });
+
+      const enriched = notes.map(n => {
+        const cls = classes.find(c => c.id === n.class_id);
+        const sub = subjects.find(s => s.id === n.subject_id);
+        return {
+          ...n,
+          className: cls ? cls.name : 'All Classes',
+          subjectName: sub ? sub.name : 'General Resources'
+        };
+      });
+
+      res.json(enriched);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Failed to fetch notes' });
+    }
+  });
+
+  app.post('/api/notes', requireAuth, async (req: any, res: any) => {
+    try {
+      if (req.user.role !== 'admin' && req.user.role !== 'teacher') {
+        return res.status(403).json({ error: 'Action restricted to teachers and administrators.' });
+      }
+
+      const { title, class_id, subject_id, file_name, file_content } = req.body;
+      if (!title || !class_id || !subject_id) {
+        return res.status(400).json({ error: 'Title, Class and Subject references are required to bind notes.' });
+      }
+
+      const note = await prisma.studyNote.create({
+        data: {
+          title,
+          class_id,
+          subject_id,
+          file_name: file_name || 'Note.txt',
+          file_content: file_content || ''
+        }
+      });
+
+      await createAuditLog(req.user.userId, `Published study notes/files on subject: "${title}"`, 'Study Material Resources');
+      res.json(note);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Server error uploading materials' });
+    }
+  });
+
+  app.delete('/api/notes/:id', requireAuth, async (req: any, res: any) => {
+    try {
+      if (req.user.role !== 'admin' && req.user.role !== 'teacher') {
+        return res.status(403).json({ error: 'Action restricted to teachers and administrators.' });
+      }
+
+      const { id } = req.params;
+      const note = await prisma.studyNote.findUnique({ where: { id } });
+      
+      if (!note) return res.status(404).json({ error: 'Study note details missing' });
+
+      await prisma.studyNote.delete({ where: { id } });
+      await createAuditLog(req.user.userId, `Deleted file content: "${note.title}"`, 'Study Material Resources');
+      
+      res.json({ success: true });
+    } catch (err) {
+      console.error(err);
       res.status(500).json({ error: 'Server error' });
     }
   });

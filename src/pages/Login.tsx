@@ -6,6 +6,7 @@ import {
   ArrowRight, CheckCircle2, Lock, Sparkles, AlertTriangle 
 } from 'lucide-react';
 import { apiCall } from '../lib/api';
+import { motion } from 'motion/react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -49,13 +50,18 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-indigo-500 selection:text-white">
       {/* Upper Navigation Header */}
-      <header className="bg-white border-b border-slate-100 py-4 px-6 sm:px-12 flex justify-between items-center sticky top-0 z-30 shadow-sm/50">
+      <motion.header 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="bg-white border-b border-slate-100 py-4 px-6 sm:px-12 flex justify-between items-center sticky top-0 z-30 shadow-sm/50"
+      >
         <div className="flex items-center gap-2">
           <div className="bg-indigo-600 text-white p-2 rounded-xl shadow-md shadow-indigo-200">
             <BookOpen className="h-6 w-6" />
           </div>
           <div>
-            <span className="font-extrabold text-slate-900 tracking-tight text-lg">ScholarBridge</span>
+            <span className="font-extrabold text-slate-900 tracking-tight text-lg">Edurecord</span>
             <span className="text-[10px] uppercase font-bold text-indigo-600 ml-1 bg-indigo-50 px-1.5 py-0.5 rounded-md tracking-wider">Proctored Core</span>
           </div>
         </div>
@@ -68,18 +74,23 @@ export default function Login() {
           <button 
             type="button"
             onClick={() => fillDemoCredentials('admin@school.com')}
-            className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3.5 py-2 rounded-xl transition-all shadow-sm border border-indigo-100"
+            className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3.5 py-2 rounded-xl transition-all shadow-sm border border-indigo-100 cursor-pointer"
           >
             Launch Instant Demo
           </button>
         </div>
-      </header>
+      </motion.header>
 
       {/* Main Container Grid */}
       <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10 lg:py-16 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
         
         {/* Left Column: Premium Pitch / Copy */}
-        <section className="lg:col-span-7 space-y-8">
+        <motion.section 
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="lg:col-span-7 space-y-8"
+        >
           <div className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 text-xs text-indigo-800 font-bold uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
             Empowering Modern Classrooms
@@ -108,60 +119,45 @@ export default function Login() {
 
             <div className="flex gap-4">
               <div className="p-3 bg-white rounded-xl shadow-sm border border-slate-100 h-12 w-12 flex items-center justify-center text-indigo-600 flex-shrink-0">
-                <Award className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-900">Gradebooks & Reports</h3>
-                <p className="text-xs text-slate-500 mt-1 leading-normal">Direct entry for mid-terms and exams. Beautiful digital report card summaries synced directly with student profiles.</p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="p-3 bg-white rounded-xl shadow-sm border border-slate-100 h-12 w-12 flex items-center justify-center text-indigo-600 flex-shrink-0">
-                <Users className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-900">Classroom Dashboards</h3>
-                <p className="text-xs text-slate-500 mt-1 leading-normal">Detailed statistics indicating enrollments, teaching assignments, published test lists, and student metrics.</p>
-              </div>
-            </div>
-
-            <div className="flex gap-4" id="proctor">
-              <div className="p-3 bg-white rounded-xl shadow-sm border border-slate-100 h-12 w-12 flex items-center justify-center text-indigo-600 flex-shrink-0">
                 <Lock className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Zero-Trust Security</h3>
-                <p className="text-xs text-slate-500 mt-1 leading-normal">Answer keys are completely stripped and processed on the server-side, preventing client-side console inspection.</p>
+                <h3 className="text-sm font-bold text-slate-900">Encrypted Results Store</h3>
+                <p className="text-xs text-slate-500 mt-1 leading-normal">Student answers and physical grades are securely stored to guarantee tamper-proof transcript delivery.</p>
               </div>
             </div>
           </div>
 
-          {/* Quick Metrics / Stats bar */}
-          <div className="border-t border-slate-200/80 pt-8 grid grid-cols-3 gap-4" id="stats">
+          {/* Quick Metrics */}
+          <div className="border-t border-slate-200/60 pt-8 grid grid-cols-3 gap-4" id="stats">
             <div>
-              <span className="block text-2xl font-black text-slate-900">99.8%</span>
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Test Compliance</span>
+              <span className="block text-2xl font-black text-slate-900">100%</span>
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Verifiable Audit Logs</span>
             </div>
             <div>
-              <span className="block text-2xl font-black text-slate-900">12,500+</span>
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Attempt Logs</span>
+              <span className="block text-2xl font-black text-slate-900">256-Bit</span>
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Passcode Hash Strength</span>
             </div>
             <div>
               <span className="block text-2xl font-black text-slate-900">&lt; 1s</span>
               <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Latency Record Sinks</span>
             </div>
           </div>
-        </section>
+        </motion.section>
 
         {/* Right Column: Beautiful Login Console */}
-        <section className="lg:col-span-5 bg-white rounded-3xl border border-slate-100 shadow-xl p-8 space-y-6 relative overflow-hidden">
+        <motion.section 
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="lg:col-span-5 bg-white rounded-3xl border border-slate-100 shadow-xl p-8 space-y-6 relative overflow-hidden"
+        >
           <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
             <BookOpen className="w-40 h-40 text-indigo-900" />
           </div>
 
           <div className="space-y-1 relative z-10">
-            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Access ScholarBridge</h2>
+            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Access Edurecord</h2>
             <p className="text-xs text-slate-500 font-medium">Please authenticate using your institutional password credentials.</p>
           </div>
 
@@ -230,7 +226,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => fillDemoCredentials('admin@school.com')}
-                className={`py-2 px-2 text-xs font-bold rounded-xl border text-center transition-all ${
+                className={`py-2 px-2 text-xs font-bold rounded-xl border text-center transition-all cursor-pointer ${
                   email === 'admin@school.com' 
                     ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' 
                     : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
@@ -242,7 +238,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => fillDemoCredentials('teacher@school.com')}
-                className={`py-2 px-2 text-xs font-bold rounded-xl border text-center transition-all ${
+                className={`py-2 px-2 text-xs font-bold rounded-xl border text-center transition-all cursor-pointer ${
                   email === 'teacher@school.com' 
                     ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' 
                     : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
@@ -254,7 +250,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => fillDemoCredentials('adm001@student.com')}
-                className={`py-2 px-2 text-xs font-bold rounded-xl border text-center transition-all ${
+                className={`py-2 px-2 text-xs font-bold rounded-xl border text-center transition-all cursor-pointer ${
                   email === 'adm001@student.com' 
                     ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' 
                     : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
@@ -268,12 +264,12 @@ export default function Login() {
               Tap any demo card above to prefill, then select "Sign In".
             </div>
           </div>
-        </section>
+        </motion.section>
       </main>
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-100 py-6 px-4 text-center text-xs text-slate-400">
-        <div>&copy; 2026 ScholarBridge Academic Integrity Systems. All educational benchmarks verified.</div>
+        <div>&copy; 2026 Edurecord Academic Integrity Systems. All educational benchmarks verified.</div>
       </footer>
     </div>
   );

@@ -6,6 +6,7 @@ import {
   ArrowRight, Sparkles, AlertTriangle, Building, User, Mail, Lock, CheckCircle2 
 } from 'lucide-react';
 import { apiCall } from '../lib/api';
+import { motion } from 'motion/react';
 
 export default function Signup() {
   const [instName, setInstName] = useState('');
@@ -68,13 +69,18 @@ export default function Signup() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-indigo-500 selection:text-white">
       {/* Header */}
-      <header className="bg-white border-b border-slate-100 py-4 px-6 sm:px-12 flex justify-between items-center sticky top-0 z-30 shadow-sm/50">
+      <motion.header 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="bg-white border-b border-slate-100 py-4 px-6 sm:px-12 flex justify-between items-center sticky top-0 z-30 shadow-sm/50"
+      >
         <div className="flex items-center gap-2">
           <div className="bg-indigo-600 text-white p-2 rounded-xl shadow-md shadow-indigo-200">
             <BookOpen className="h-6 w-6" />
           </div>
           <div>
-            <span className="font-extrabold text-slate-900 tracking-tight text-lg">EduRecord</span>
+            <span className="font-extrabold text-slate-900 tracking-tight text-lg">Edurecord</span>
             <span className="text-[10px] uppercase font-bold text-indigo-600 ml-1 bg-indigo-50 px-1.5 py-0.5 rounded-md tracking-wider">Multi-Tenant setup</span>
           </div>
         </div>
@@ -86,11 +92,16 @@ export default function Signup() {
             Sign In Instead
           </Link>
         </div>
-      </header>
+      </motion.header>
 
       {/* Main Container */}
       <main className="flex-grow max-w-lg mx-auto w-full px-4 py-12 flex flex-col justify-center">
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-8 space-y-6 relative overflow-hidden">
+        <motion.div 
+          initial={{ opacity: 0, y: 25, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.45, ease: 'easeOut' }}
+          className="bg-white rounded-3xl border border-slate-100 shadow-xl p-8 space-y-6 relative overflow-hidden"
+        >
           
           <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
             <Building className="w-36 h-36 text-indigo-900" />
@@ -98,7 +109,7 @@ export default function Signup() {
 
           <div className="space-y-2 relative z-10 text-center">
             <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-800 text-[10px] font-bold uppercase px-2.5 py-1 rounded-full">
-              <Sparkles className="w-3 h-3 text-indigo-600" /> Institution Signup
+              <Sparkles className="w-3.5 h-3.5 text-indigo-600" /> Institution Signup
             </span>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">Register Your Institution</h2>
             <p className="text-xs text-slate-500 max-w-xs mx-auto">
@@ -203,12 +214,12 @@ export default function Signup() {
             </span>
           </div>
 
-        </div>
+        </motion.div>
       </main>
 
       {/* Footer */}
       <footer className="py-6 text-center text-xs text-slate-400 border-t border-slate-100 bg-white">
-        <div>&copy; 2026 EduRecord Academic Core Systems. All school nodes protected.</div>
+        <div>&copy; 2026 Edurecord Academic Core Systems. All school nodes protected.</div>
       </footer>
     </div>
   );

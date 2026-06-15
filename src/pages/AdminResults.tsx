@@ -192,7 +192,7 @@ export default function AdminResults() {
       <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl flex items-start gap-3">
         <ShieldAlert className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
         <div>
-          <h4 className="text-xs font-bold text-indigo-900">EduRecord Security Compliance Information</h4>
+          <h4 className="text-xs font-bold text-indigo-900">Edurecord Security Compliance Information</h4>
           <p className="text-[11px] text-indigo-700 mt-1 leading-relaxed leading-normal">
             Student answer arrays are completely stripped on retrieval and processed using cryptographically hashed values. 
             All visual focus loss proctoring triggers communicate real-time web telemetry securely to prevent client-side inspection or grade tampering.

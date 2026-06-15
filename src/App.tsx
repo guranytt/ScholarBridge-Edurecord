@@ -18,6 +18,8 @@ import StudentResults from './pages/student/StudentResults';
 import StudentReportCard from './pages/student/StudentReportCard';
 import StudentProfile from './pages/student/StudentProfile';
 import StudentTests from './pages/student/StudentTests';
+import NotesHub from './pages/NotesHub';
+import AdminSettings from './pages/AdminSettings';
 
 export default function App() {
   return (
@@ -31,15 +33,19 @@ export default function App() {
           <Route path="/admin/students" element={<AdminStudents />} />
           <Route path="/admin/teachers" element={<AdminTeachers />} />
           <Route path="/admin/results" element={<AdminResults />} />
+          <Route path="/admin/notes" element={<NotesHub />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
           <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
           
           <Route path="/teacher" element={<Navigate to="/teacher/results" replace />} />
           <Route path="/teacher/results" element={<TeacherDashboard />} />
           <Route path="/teacher/tests" element={<TeacherTests />} />
+          <Route path="/teacher/notes" element={<NotesHub />} />
           
           <Route path="/student" element={<StudentDashboard />} />
           <Route path="/student/results" element={<StudentResults />} />
           <Route path="/student/tests" element={<StudentTests />} />
+          <Route path="/student/notes" element={<NotesHub />} />
           <Route path="/student/report-card" element={<StudentReportCard />} />
           <Route path="/student/profile" element={<StudentProfile />} />
           <Route path="/student/*" element={<Navigate to="/student" replace />} />

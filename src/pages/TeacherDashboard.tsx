@@ -259,7 +259,7 @@ export default function TeacherDashboard() {
       <div className="bg-white shadow overflow-hidden sm:rounded-lg border border-gray-100">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
           <h3 className="text-lg leading-6 font-medium text-gray-900">{currentSubjectObj?.name} Master List</h3>
-          <p className="mt-1 text-sm text-gray-500">Auto-grading is powered by the EduRecord calculation engine.</p>
+          <p className="mt-1 text-sm text-gray-500">Auto-grading is powered by the Edurecord calculation engine.</p>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
